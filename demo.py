@@ -4,7 +4,7 @@ Automated demo of Sorry! game
 This script demonstrates the game by simulating automated moves.
 """
 
-from sorry_game import *
+from sorry_game import SorryGame, CardType
 import random
 
 # Set seed for reproducibility
