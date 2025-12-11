@@ -30,6 +30,16 @@ Sorry! is a board game where 2-4 players race their pawns around the board from 
 python3 sorry_game.py
 ```
 
+### Running the Demo
+
+To see an automated demonstration of the game in action:
+
+```bash
+python3 demo.py
+```
+
+This will run an automated game where simple AI makes moves, showing how the game progresses.
+
 ### Game Rules
 
 1. **Objective**: Be the first player to get all 4 pawns from Start to Home

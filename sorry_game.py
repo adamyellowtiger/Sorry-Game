@@ -90,9 +90,13 @@ class Deck:
         """Draw a card from the deck."""
         if not self.cards:
             # Reshuffle discard pile
-            self.cards = self.discard_pile
-            self.discard_pile = []
-            random.shuffle(self.cards)
+            if not self.discard_pile:
+                # If both are empty, reinitialize deck (shouldn't happen in normal play)
+                self._initialize_deck()
+            else:
+                self.cards = self.discard_pile
+                self.discard_pile = []
+                random.shuffle(self.cards)
         
         return self.cards.pop()
     
@@ -174,6 +178,7 @@ class Board:
         """Move pawn to home."""
         self.remove_pawn(pawn)
         pawn.in_home = True
+        pawn.in_safe_zone = False
         pawn.position = -2  # Special value for home
         self.homes[pawn.color].append(pawn)
 
@@ -521,7 +526,7 @@ class SorryGame:
                     print(f"  {pawn} at position {pawn.position}")
             
             # Pawns in safe zone
-            in_safe = [p for p in player.pawns if p.in_safe_zone]
+            in_safe = [p for p in player.pawns if p.in_safe_zone and not p.in_home]
             if in_safe:
                 for pawn in in_safe:
                     print(f"  {pawn} in safe zone at position {pawn.position}")
