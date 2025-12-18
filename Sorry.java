@@ -12,10 +12,13 @@ public class Sorry {
 12: Move forward 12 spaces.
 Sorry!: You can save the card for later use, or you can use it to bump an opponent's pawn to the start.
      */
-    static int players = 4;
+    static final int PLAYERS = 4;
+    static final int TRACK_LENGTH = 60;
+    
     static int[] cards = {1,2,3,4,5,6,7,8,9,10,11,12,13};
     public static void main(String[] args) {
         System.out.println("This game requires four players. Please ensure that you have four players to play");
 
     }
 }
+
