@@ -1,90 +1,81 @@
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.StringTokenizer;
+import java.util.Random;
+import java.util.Scanner;
+
 /**
  * @author Adam Fan
  * @date 2025-12-12
  */
 
 /**
- * The Sorry class represents the implementation of the "SORRY!" board game.
- * It provides the game logic, player actions, and board management for the game.
- * The game revolves around drawing cards, moving pawns, and interacting with other pawns
- * to either progress or hinder opponents.
- *
- * Class Variables:
- * - br: BufferedReader for reading user inputs.
- * - st: StringTokenizer for parsing input commands.
- * - PLAYERS: Total number of players in the game.
- * - BOARD_SIZE: Size of the main board excluding home stretches and start positions.
- * - PAWNS_PER_PLAYER: Number of pawns assigned to each player.
- * - HOME_STRETCH_SIZE: Length of the home stretch path for each player.
- * - PLAYER_COLORS: Array representing the colors of each player.
- * - deck: List representing the shuffled deck of cards.
- * - pawnPositions: 2D array holding the positions of pawns for each player.
- * - START_POSITIONS: Array holding the starting board positions for each player.
- * - HOME_ENTRY_POSITIONS: Array holding the positions at which players enter their home stretch.
- * - currentPlayer: Index of the player whose turn it is.
- * - savedSorryCards: Array tracking the number of saved "Sorry!" cards for each player.
- *
- * Methods:
- * - next(): Reads and returns the next input element as a String.
- * - nextInt(): Reads the next input element and parses it as an integer.
- * - main(String[] args): Entry point of the program. It initializes and starts the game.
- * - initializeGame(): Sets up the game board, pawns, and shuffles the deck.
- * - resetDeck(): Resets and reshuffles the deck of cards.
- * - drawCard(): Draws a card from the deck. Resets and reshuffles if the deck is empty.
- * - getCardName(int card): Returns the name or description of a card based on its value.
- * - printCardAction(int card): Prints the action associated with a specific card.
- * - playCard(int player, int card): Executes the action corresponding to a drawn card.
- * - playCard1(int player): Handles actions for a "1" card.
- * - playCard2(int player): Handles actions for a "2" card.
- * - playCard7(int player): Handles actions for a "7" card, including splitting moves.
- * - playCard10(int player): Handles actions for a "10" card.
- **/
+ * The SorryTest class drives a text-based version of the SORRY! board game.
+ * It bundles the card drawing, pawn movement, and win checking so four people
+ * can take turns and race their pawns home.
+ */
 public class SorryTest {
+    /*
+     * Input helpers keep the console reads tidy so we can focus on game rules
+     * instead of parsing.
+     */
     // Input handling
-    static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-    static StringTokenizer st;
+    static Scanner scanner = new Scanner(System.in);
 
+    /**
+     * Reads the next token from standard input, grabbing a new token from the
+     * scanner if needed.
+     */
     static String next() throws Exception {
-        while (st == null || !st.hasMoreTokens()) {
-            st = new StringTokenizer(br.readLine());
+        while (!scanner.hasNext()) {
+            scanner.nextLine();
         }
-        return st.nextToken();
-    }
-    static int nextInt() throws Exception {
-        return Integer.parseInt(next());
+        return scanner.next();
     }
 
-    // Game constants
+    /**
+     * Parses the next token as an integer so card choices can be read safely.
+     */
+    static int nextInt() throws Exception {
+        while (!scanner.hasNextInt()) {
+            scanner.next();
+        }
+        return scanner.nextInt();
+    }
+
+    /* Game constants that set up the board and player details. */
     static final int PLAYERS = 4;
-    static final int BOARD_SIZE = 60;  // Main track size
+    static final int BOARD_SIZE = 60;
     static final int PAWNS_PER_PLAYER = 4;
-    static final int HOME_STRETCH_SIZE = 5;  // Safety zone length
+    static final int HOME_STRETCH_SIZE = 5;
     static final String[] PLAYER_COLORS = {"Red", "Blue", "Yellow", "Green"};
 
-    // Card deck (no 6 or 9 in Sorry!)
+    /* Card deck (no 6 or 9 in Sorry!) */
     static List<Integer> deck = new ArrayList<>();
+    static Random random = new Random();
 
-    // Player pawns: [player][pawn] = position (-1 = start, 0-59 = board, 60-64 = home stretch, 65 = home)
+    /*
+     * Player pawns: [player][pawn] = position
+     * -1 means Start, 0-59 covers the main ring, 60-64 is the safety zone,
+     * and 65 marks a pawn that made it all the way Home.
+     */
     static int[][] pawnPositions = new int[PLAYERS][PAWNS_PER_PLAYER];
 
-    // Starting positions for each player on the board
+    /* Starting positions for each player on the board. */
     static final int[] START_POSITIONS = {0, 15, 30, 45};
 
-    // Home stretch entry positions for each player
+    /* Home stretch entry positions for each player. */
     static final int[] HOME_ENTRY_POSITIONS = {2, 17, 32, 47};
 
-    // Current player index
+    /* Current player index. */
     static int currentPlayer = 0;
 
-    // Saved Sorry! cards for each player
+    /* Saved Sorry! cards for each player. */
     static int[] savedSorryCards = new int[PLAYERS];
 
+    /**
+     * Entry point: shows the welcome text, sets up the board, and loops turn by
+     * turn until someone gets every pawn home.
+     */
     public static void main(String[] args) throws Exception {
         System.out.println("=== WELCOME TO SORRY! ===");
         System.out.println("This game requires four players. Please ensure that you have four players to play.\n");
@@ -135,6 +126,10 @@ public class SorryTest {
         System.out.println("\n🎉 " + PLAYER_COLORS[currentPlayer] + " WINS! 🎉");
     }
 
+    /**
+     * Sets pawns to Start, clears saved cards, and shuffles a fresh deck so the
+     * match begins with a clean slate.
+     */
     static void initializeGame() {
         // Initialize all pawns at start (-1)
         for (int i = 0; i < PLAYERS; i++) {
@@ -148,6 +143,10 @@ public class SorryTest {
         resetDeck();
     }
 
+    /**
+     * Fills the deck with four of each card type, then shuffles to randomize the
+     * draw order.
+     */
     static void resetDeck() {
         deck.clear();
         // Sorry! deck: 4 of each card 1-12 (no 6 or 9), plus 4 Sorry! cards (represented as 13)
@@ -157,9 +156,12 @@ public class SorryTest {
                 deck.add(card);
             }
         }
-        Collections.shuffle(deck);
+        shuffleDeck();
     }
 
+    /**
+     * Grabs the top card, reshuffling if the pile ran out.
+     */
     static int drawCard() {
         if (deck.isEmpty()) {
             resetDeck();
@@ -167,46 +169,112 @@ public class SorryTest {
         return deck.remove(deck.size() - 1);
     }
 
+    /**
+     * Simple manual shuffle using Random so it fits what we learned.
+     */
+    static void shuffleDeck() {
+        for (int i = deck.size() - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            int temp = deck.get(i);
+            deck.set(i, deck.get(j));
+            deck.set(j, temp);
+        }
+    }
+
+    /**
+     * Turns the numeric card ID into a readable label.
+     */
     static String getCardName(int card) {
         return card == 13 ? "Sorry!" : String.valueOf(card);
     }
 
+    /**
+     * Prints the quick rules for the drawn card so players know their options.
+     */
     static void printCardAction(int card) {
         switch (card) {
-            case 1 -> System.out.println("  → Move a pawn from Start OR move forward 1 space.");
-            case 2 -> System.out.println("  → Move a pawn from Start OR move forward 2 spaces. Draw again!");
-            case 3 -> System.out.println("  → Move forward 3 spaces.");
-            case 4 -> System.out.println("  → Move backward 4 spaces.");
-            case 5 -> System.out.println("  → Move forward 5 spaces.");
-            case 7 -> System.out.println("  → Move forward 7 spaces OR split between 2 pawns.");
-            case 8 -> System.out.println("  → Move forward 8 spaces.");
-            case 10 -> System.out.println("  → Move forward 10 spaces OR move backward 1 space.");
-            case 11 -> System.out.println("  → Move forward 11 spaces OR switch with an opponent.");
-            case 12 -> System.out.println("  → Move forward 12 spaces.");
-            case 13 -> System.out.println("  → Sorry! Bump an opponent to Start OR save for later.");
+            case 1:
+                System.out.println("  → Move a pawn from Start OR move forward 1 space.");
+                break;
+            case 2:
+                System.out.println("  → Move a pawn from Start OR move forward 2 spaces. Draw again!");
+                break;
+            case 3:
+                System.out.println("  → Move forward 3 spaces.");
+                break;
+            case 4:
+                System.out.println("  → Move backward 4 spaces.");
+                break;
+            case 5:
+                System.out.println("  → Move forward 5 spaces.");
+                break;
+            case 7:
+                System.out.println("  → Move forward 7 spaces OR split between 2 pawns.");
+                break;
+            case 8:
+                System.out.println("  → Move forward 8 spaces.");
+                break;
+            case 10:
+                System.out.println("  → Move forward 10 spaces OR move backward 1 space.");
+                break;
+            case 11:
+                System.out.println("  → Move forward 11 spaces OR switch with an opponent.");
+                break;
+            case 12:
+                System.out.println("  → Move forward 12 spaces.");
+                break;
+            case 13:
+                System.out.println("  → Sorry! Bump an opponent to Start OR save for later.");
+                break;
         }
     }
 
+    /**
+     * Routes the drawn card to the correct rule handler and reports whether the
+     * player should take another turn (card 2).
+     */
     static boolean playCard(int player, int card) throws Exception {
         switch (card) {
-            case 1 -> playCard1(player);
-            case 2 -> {
+            case 1:
+                playCard1(player);
+                break;
+            case 2:
                 playCard2(player);
                 return true; // Draw again
-            }
-            case 3 -> moveForward(player, 3);
-            case 4 -> moveBackward(player, 4);
-            case 5 -> moveForward(player, 5);
-            case 7 -> playCard7(player);
-            case 8 -> moveForward(player, 8);
-            case 10 -> playCard10(player);
-            case 11 -> playCard11(player);
-            case 12 -> moveForward(player, 12);
-            case 13 -> playCard13(player);
+            case 3:
+                moveForward(player, 3);
+                break;
+            case 4:
+                moveBackward(player, 4);
+                break;
+            case 5:
+                moveForward(player, 5);
+                break;
+            case 7:
+                playCard7(player);
+                break;
+            case 8:
+                moveForward(player, 8);
+                break;
+            case 10:
+                playCard10(player);
+                break;
+            case 11:
+                playCard11(player);
+                break;
+            case 12:
+                moveForward(player, 12);
+                break;
+            case 13:
+                playCard13(player);
+                break;
         }
         return false;
     }
 
+    /**
+     * Card 1 lets a player leave Start or inch forward one space.
+     */
     static void playCard1(int player) throws Exception {
         System.out.println("Choose action: (1) Move pawn from Start, (2) Move forward 1 space");
         int choice = nextInt();
@@ -217,6 +285,9 @@ public class SorryTest {
         }
     }
 
+    /**
+     * Card 2 mirrors card 1 but awards another draw after the move.
+     */
     static void playCard2(int player) throws Exception {
         System.out.println("Choose action: (1) Move pawn from Start, (2) Move forward 2 spaces");
         int choice = nextInt();
@@ -227,6 +298,9 @@ public class SorryTest {
         }
     }
 
+    /**
+     * Card 7 can be spent on one big push or split into two smaller hops.
+     */
     static void playCard7(int player) throws Exception {
         System.out.println("Choose action: (1) Move one pawn 7 spaces, (2) Split between two pawns");
         int choice = nextInt();
@@ -252,6 +326,9 @@ public class SorryTest {
         }
     }
 
+    /**
+     * Card 10 offers a burst forward or a tiny retreat.
+     */
     static void playCard10(int player) throws Exception {
         System.out.println("Choose action: (1) Move forward 10 spaces, (2) Move backward 1 space");
         int choice = nextInt();
@@ -262,6 +339,9 @@ public class SorryTest {
         }
     }
 
+    /**
+     * Card 11 either pushes ahead or swaps spots with an opposing pawn.
+     */
     static void playCard11(int player) throws Exception {
         System.out.println("Choose action: (1) Move forward 11 spaces, (2) Switch with opponent");
         int choice = nextInt();
@@ -272,6 +352,9 @@ public class SorryTest {
         }
     }
 
+    /**
+     * Card 13 is the iconic Sorry! bump. Players can cash it in now or stash it.
+     */
     static void playCard13(int player) throws Exception {
         System.out.println("Choose action: (1) Use Sorry! now, (2) Save for later");
         int choice = nextInt();
@@ -283,6 +366,10 @@ public class SorryTest {
         }
     }
 
+    /**
+     * Uses a Sorry! card to boot an opponent off the main track and replace them
+     * with one of the player's start pawns.
+     */
     static void playSorryCard(int player) throws Exception {
         // Find opponent pawns on the board (not in start, home stretch, or home)
         List<int[]> targets = new ArrayList<>();
@@ -339,6 +426,10 @@ public class SorryTest {
         }
     }
 
+    /**
+     * Moves the first available pawn out of Start onto its color's opening tile,
+     * handling bumps if the landing spot is occupied.
+     */
     static void moveFromStart(int player) {
         for (int pawn = 0; pawn < PAWNS_PER_PLAYER; pawn++) {
             if (pawnPositions[player][pawn] == -1) {
@@ -355,6 +446,9 @@ public class SorryTest {
         System.out.println("Cannot move from Start - no pawns available or blocked!");
     }
 
+    /**
+     * Lets the player pick a pawn and step it forward the requested count.
+     */
     static void moveForward(int player, int spaces) throws Exception {
         int pawn = selectPawn(player, true);
         if (pawn != -1) {
@@ -362,6 +456,10 @@ public class SorryTest {
         }
     }
 
+    /**
+     * Lets the player pick a pawn and walk it backward for cards like 4 or the
+     * reverse option on 10.
+     */
     static void moveBackward(int player, int spaces) throws Exception {
         int pawn = selectPawn(player, true);
         if (pawn != -1) {
@@ -369,6 +467,10 @@ public class SorryTest {
         }
     }
 
+    /**
+     * Displays each pawn's status and confirms the selection is allowed for the
+     * current card.
+     */
     static int selectPawn(int player, boolean onBoardOnly) throws Exception {
         List<Integer> available = new ArrayList<>();
         System.out.println("Your pawns:");
@@ -395,6 +497,10 @@ public class SorryTest {
         return -1;
     }
 
+    /**
+     * Handles all the movement math for a pawn, including entering the home
+     * stretch, bumping, and sliding.
+     */
     static void movePawn(int player, int pawn, int spaces, boolean forward) {
         int currentPos = pawnPositions[player][pawn];
 
@@ -450,6 +556,10 @@ public class SorryTest {
         checkSlide(player, pawn);
     }
 
+    /**
+     * Swaps a chosen pawn with an opponent's pawn that is sitting on the main
+     * loop of the board.
+     */
     static void switchWithOpponent(int player) throws Exception {
         List<int[]> targets = new ArrayList<>();
         for (int p = 0; p < PLAYERS; p++) {
@@ -492,6 +602,9 @@ public class SorryTest {
         }
     }
 
+    /**
+     * Checks if a position already has one of the player's own pawns.
+     */
     static boolean isOwnPawnAt(int player, int pos) {
         for (int pawn = 0; pawn < PAWNS_PER_PLAYER; pawn++) {
             if (pawnPositions[player][pawn] == pos) {
@@ -501,6 +614,9 @@ public class SorryTest {
         return false;
     }
 
+    /**
+     * Sends any opponent pawn occupying the same tile back to Start.
+     */
     static void checkBump(int player, int pawn) {
         int pos = pawnPositions[player][pawn];
         for (int p = 0; p < PLAYERS; p++) {
@@ -514,6 +630,10 @@ public class SorryTest {
         }
     }
 
+    /**
+     * Applies the slide rules: landing on another color's slide start moves the
+     * pawn forward and bumps any pieces on the slide path.
+     */
     static void checkSlide(int player, int pawn) {
         int pos = pawnPositions[player][pawn];
         // Slide positions (start of slides for opponents)
@@ -550,6 +670,9 @@ public class SorryTest {
         }
     }
 
+    /**
+     * Converts a pawn position into a friendly description for menu prompts.
+     */
     static String getPositionDescription(int player, int pos) {
         if (pos == -1) return "At Start";
         if (pos >= BOARD_SIZE + HOME_STRETCH_SIZE) return "HOME! ✓";
@@ -557,6 +680,10 @@ public class SorryTest {
         return "Board position " + pos;
     }
 
+    /**
+     * Checks if every pawn owned by the player has made it to or past the end
+     * of the home stretch.
+     */
     static boolean checkWin(int player) {
         for (int pawn = 0; pawn < PAWNS_PER_PLAYER; pawn++) {
             if (pawnPositions[player][pawn] < BOARD_SIZE + HOME_STRETCH_SIZE) {
@@ -566,10 +693,17 @@ public class SorryTest {
         return true;
     }
 
+    /**
+     * Advances the turn marker to the next player in order.
+     */
     static void nextPlayer() {
         currentPlayer = (currentPlayer + 1) % PLAYERS;
     }
 
+    /**
+     * Prints a quick summary of where every pawn sits so players can plan their
+     * next moves.
+     */
     static void displayBoard() {
         System.out.println("\n=== BOARD STATUS ===");
         for (int player = 0; player < PLAYERS; player++) {
@@ -582,6 +716,10 @@ public class SorryTest {
         System.out.println("====================\n");
     }
 
+    /**
+     * Shows the core game rules at the start so everyone knows how their cards
+     * behave.
+     */
     static void printRules() {
         System.out.println("\n=== SORRY! RULES ===");
         System.out.println("Goal: Move all 4 pawns from Start to Home.");
