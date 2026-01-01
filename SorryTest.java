@@ -1,9 +1,7 @@
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.StringTokenizer;
+import java.util.Random;
+import java.util.Scanner;
 
 /**
  * @author Adam Fan
@@ -21,25 +19,27 @@ public class SorryTest {
      * instead of parsing.
      */
     // Input handling
-    static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-    static StringTokenizer st;
+    static Scanner scanner = new Scanner(System.in);
 
     /**
-     * Reads the next token from standard input, grabbing a new line if the
-     * tokenizer is empty.
+     * Reads the next token from standard input, grabbing a new token from the
+     * scanner if needed.
      */
     static String next() throws Exception {
-        while (st == null || !st.hasMoreTokens()) {
-            st = new StringTokenizer(br.readLine());
+        while (!scanner.hasNext()) {
+            scanner.nextLine();
         }
-        return st.nextToken();
+        return scanner.next();
     }
 
     /**
      * Parses the next token as an integer so card choices can be read safely.
      */
     static int nextInt() throws Exception {
-        return Integer.parseInt(next());
+        while (!scanner.hasNextInt()) {
+            scanner.next();
+        }
+        return scanner.nextInt();
     }
 
     /* Game constants that set up the board and player details. */
@@ -51,6 +51,7 @@ public class SorryTest {
 
     /* Card deck (no 6 or 9 in Sorry!) */
     static List<Integer> deck = new ArrayList<>();
+    static Random random = new Random();
 
     /*
      * Player pawns: [player][pawn] = position
@@ -155,7 +156,7 @@ public class SorryTest {
                 deck.add(card);
             }
         }
-        Collections.shuffle(deck);
+        shuffleDeck();
     }
 
     /**
@@ -166,6 +167,18 @@ public class SorryTest {
             resetDeck();
         }
         return deck.remove(deck.size() - 1);
+    }
+
+    /**
+     * Simple manual shuffle using Random so it fits what we learned.
+     */
+    static void shuffleDeck() {
+        for (int i = deck.size() - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            int temp = deck.get(i);
+            deck.set(i, deck.get(j));
+            deck.set(j, temp);
+        }
     }
 
     /**
@@ -180,17 +193,39 @@ public class SorryTest {
      */
     static void printCardAction(int card) {
         switch (card) {
-            case 1 -> System.out.println("  → Move a pawn from Start OR move forward 1 space.");
-            case 2 -> System.out.println("  → Move a pawn from Start OR move forward 2 spaces. Draw again!");
-            case 3 -> System.out.println("  → Move forward 3 spaces.");
-            case 4 -> System.out.println("  → Move backward 4 spaces.");
-            case 5 -> System.out.println("  → Move forward 5 spaces.");
-            case 7 -> System.out.println("  → Move forward 7 spaces OR split between 2 pawns.");
-            case 8 -> System.out.println("  → Move forward 8 spaces.");
-            case 10 -> System.out.println("  → Move forward 10 spaces OR move backward 1 space.");
-            case 11 -> System.out.println("  → Move forward 11 spaces OR switch with an opponent.");
-            case 12 -> System.out.println("  → Move forward 12 spaces.");
-            case 13 -> System.out.println("  → Sorry! Bump an opponent to Start OR save for later.");
+            case 1:
+                System.out.println("  → Move a pawn from Start OR move forward 1 space.");
+                break;
+            case 2:
+                System.out.println("  → Move a pawn from Start OR move forward 2 spaces. Draw again!");
+                break;
+            case 3:
+                System.out.println("  → Move forward 3 spaces.");
+                break;
+            case 4:
+                System.out.println("  → Move backward 4 spaces.");
+                break;
+            case 5:
+                System.out.println("  → Move forward 5 spaces.");
+                break;
+            case 7:
+                System.out.println("  → Move forward 7 spaces OR split between 2 pawns.");
+                break;
+            case 8:
+                System.out.println("  → Move forward 8 spaces.");
+                break;
+            case 10:
+                System.out.println("  → Move forward 10 spaces OR move backward 1 space.");
+                break;
+            case 11:
+                System.out.println("  → Move forward 11 spaces OR switch with an opponent.");
+                break;
+            case 12:
+                System.out.println("  → Move forward 12 spaces.");
+                break;
+            case 13:
+                System.out.println("  → Sorry! Bump an opponent to Start OR save for later.");
+                break;
         }
     }
 
@@ -200,20 +235,39 @@ public class SorryTest {
      */
     static boolean playCard(int player, int card) throws Exception {
         switch (card) {
-            case 1 -> playCard1(player);
-            case 2 -> {
+            case 1:
+                playCard1(player);
+                break;
+            case 2:
                 playCard2(player);
                 return true; // Draw again
-            }
-            case 3 -> moveForward(player, 3);
-            case 4 -> moveBackward(player, 4);
-            case 5 -> moveForward(player, 5);
-            case 7 -> playCard7(player);
-            case 8 -> moveForward(player, 8);
-            case 10 -> playCard10(player);
-            case 11 -> playCard11(player);
-            case 12 -> moveForward(player, 12);
-            case 13 -> playCard13(player);
+            case 3:
+                moveForward(player, 3);
+                break;
+            case 4:
+                moveBackward(player, 4);
+                break;
+            case 5:
+                moveForward(player, 5);
+                break;
+            case 7:
+                playCard7(player);
+                break;
+            case 8:
+                moveForward(player, 8);
+                break;
+            case 10:
+                playCard10(player);
+                break;
+            case 11:
+                playCard11(player);
+                break;
+            case 12:
+                moveForward(player, 12);
+                break;
+            case 13:
+                playCard13(player);
+                break;
         }
         return false;
     }
